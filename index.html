@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang='fr'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>EvalPro - AlterForm AID</title>
+<script src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js'></script>
+<style>
+:root {
+  --bg: #f4f4f0;
+  --card: #fff;
+  --text: #222;
+  --border: #ddd;
+  --sub: #555;
+  --header-bg: #fff;
+  --qh-bg: #fff;
+  --act-bg: #fff;
+  --qr-bg: #fff;
+  --ss-bg: #fde8d8;
+  --rl-bg: #f5f5f5;
+  --input-bg: #fff;
+  --input-border: #ccc;
+  --recap-bg: #fff;
+  --recap-alt: #fdf2ec;
+  --global-bg: #f9f9f9;
+  --missing-bg: #fff8f4;
+  --ro-hover: #f0f0f0;
+}
+body.dark {
+  --bg: #0f1b2d;
+  --card: #162236;
+  --text: #dce8f5;
+  --border: #2a3f5a;
+  --sub: #8aaac8;
+  --header-bg: #111e30;
+  --qh-bg: #111e30;
+  --act-bg: #111e30;
+  --qr-bg: #162236;
+  --ss-bg: #1e2e1a;
+  --rl-bg: #1a2a3a;
+  --input-bg: #1a2a3a;
+  --input-border: #2a4060;
+  --recap-bg: #162236;
+  --recap-alt: #1a2e45;
+  --global-bg: #1a2a3a;
+  --missing-bg: #1e2a38;
+  --ro-hover: #1e3048;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);font-size:15px;}
+header{background:var(--header-bg);border-bottom:3px solid #E8611A;padding:10px 20px;display:flex;align-items:center;gap:16px;}
+header img{height:64px;width:auto;object-fit:contain;}
+header .htxt h1{font-size:17px;color:#333;font-weight:700;}
+header .htxt span{font-size:11px;color:#E8611A;font-weight:600;}
+main{max-width:1100px;margin:0 auto;padding:32px 16px;}
+.view{display:none;} .view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.fade-in{animation:fadeIn 0.3s ease forwards;}
+.card{max-width:420px;margin:40px auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:36px;}
+.card h2{font-size:20px;margin-bottom:20px;}
+.fg{margin-bottom:16px;}
+.fg label{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;margin-bottom:5px;}
+.fg input,.fg select{width:100%;padding:9px 12px;border:1px solid var(--input-border);border-radius:7px;font-size:14px;background:var(--input-bg);color:var(--text);transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:#E8611A;outline:none;box-shadow:0 0 0 3px rgba(232,97,26,.15);}
+.err{background:#fce;color:#700;padding:9px 12px;border-radius:7px;font-size:13px;margin-bottom:14px;display:none;}
+.btn{display:inline-block;padding:10px 22px;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;transition:background .2s,transform .1s;}
+.btn:active{transform:scale(0.97);}
+.bp{background:#E8611A;color:#fff;} .bp:hover{background:#c44e0f;}
+.bs{background:#3A9B3C;color:#fff;} .bs:hover{background:#2a7a2c;}
+.qh{background:var(--qh-bg);border-bottom:2px solid var(--border);padding:10px 18px;margin-bottom:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.qi{font-size:13px;color:#555;} .qi strong{color:#222;}
+.pl{font-size:12px;color:#777;margin-bottom:3px;}
+.pb{height:8px;background:#e0e0e0;border-radius:99px;width:180px;overflow:hidden;}
+.pf{height:100%;background:#E8611A;border-radius:99px;transition:width .4s ease, background .4s ease;}
+.score-badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:#f0f0f0;color:#777;transition:all .3s;}
+.score-badge.good{background:#C8F0CA;color:#1a6b1c;}
+.score-badge.mid{background:#fff3cd;color:#856404;}
+.score-badge.low{background:#FACCCC;color:#7b0000;}
+.qcontent{padding:18px 0;}
+.st{background:#E8611A;color:#fff;padding:10px 18px;border-radius:8px;font-size:15px;font-weight:700;margin-top:24px;margin-bottom:3px;}
+.ss{background:var(--ss-bg);color:#c44e0f;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:700;margin-top:12px;margin-bottom:3px;border-left:4px solid #E8611A;}
+.ch{display:grid;grid-template-columns:1fr 200px 200px;gap:8px;padding:6px 12px;font-size:11px;font-weight:700;text-transform:uppercase;color:#999;}
+.qr{display:grid;grid-template-columns:1fr 200px 200px;gap:8px;padding:12px;background:var(--qr-bg);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;transition:background .3s,border-color .3s;}
+.qr.answered-s{background:#fff8f4;border-color:#f0c4a8;}
+.qr.answered-f{background:#f4fff4;border-color:#a8d4a8;}
+.qt{font-size:13px;color:#333;}
+.rg{display:flex;flex-direction:column;gap:5px;}
+.rl{background:var(--rl-bg);border:1px dashed var(--border);border-radius:6px;padding:6px;}
+.ro{display:flex;align-items:flex-start;gap:7px;padding:3px 5px;border-radius:5px;cursor:pointer;transition:background .15s;}
+.ro:hover{background:#f0f0f0;} .rl .ro{pointer-events:none;}
+.ro input{margin-top:2px;accent-color:#E8611A;width:14px;height:14px;flex-shrink:0;}
+.ro span{font-size:12px;color:#666;line-height:1.3;}
+.ro input:checked + span{color:#111;font-weight:700;}
+.ln{font-size:11px;color:#aaa;text-align:center;padding:5px 3px;}
+.act{position:sticky;bottom:0;background:var(--act-bg);border-top:2px solid var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 -3px 10px rgba(0,0,0,.06);flex-wrap:wrap;}
+.act-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.act-right{display:flex;gap:10px;align-items:center;}
+.cnt{font-size:12px;color:#999;}
+.mb80{padding-bottom:100px;}
+.missing-panel{display:none;background:var(--missing-bg);border:2px solid #E8611A;border-radius:8px;padding:14px 18px;margin:10px 0;}
+.missing-panel h4{font-size:13px;color:#c44e0f;font-weight:700;margin-bottom:10px;}
+.missing-item{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:#444;transition:background .15s;border-bottom:1px solid #fde8d8;}
+.missing-item:last-child{border-bottom:none;}
+.missing-item:hover{background:#fde8d8;color:#c44e0f;font-weight:700;}
+.mnum{background:#E8611A;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;flex-shrink:0;min-width:36px;text-align:center;}
+.btn-miss{background:#fff;border:2px solid #E8611A;color:#E8611A;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;font-weight:700;white-space:nowrap;}
+.btn-miss:hover{background:#E8611A;color:#fff;}
+.spinner-wrap{text-align:center;padding:40px;}
+.spinner{width:36px;height:36px;border:4px solid #f0d0c0;border-top:4px solid #E8611A;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.cc{max-width:460px;margin:60px auto;background:#fff;border:1px solid #ddd;border-radius:12px;padding:36px;text-align:center;}
+.cc .ic{font-size:44px;margin-bottom:14px;} .cc h2{font-size:18px;margin-bottom:10px;} .cc p{font-size:13px;color:#666;margin-bottom:16px;}
+.mb-box{background:#fdf2ec;border:1px solid #E8611A;border-radius:8px;padding:18px;margin-bottom:16px;}
+.mb-box p{font-size:13px;font-weight:700;color:#c44e0f;margin-bottom:10px;}
+.hint{font-size:11px;color:#bbb;}
+.radar-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;margin:18px 0;text-align:center;}
+.radar-wrap h3{font-size:13px;font-weight:700;color:#E8611A;margin-bottom:12px;}
+.radar-wrap canvas{max-width:100%;display:block;margin:0 auto;}
+.radar-legend{display:flex;justify-content:center;gap:20px;margin-top:8px;font-size:11px;color:#555;}
+.radar-legend span{display:flex;align-items:center;gap:5px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.recap-card{background:var(--recap-bg);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:18px;}
+.recap-card h2{font-size:18px;margin-bottom:6px;}
+.recap-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px;}
+.recap-tbl th{background:#E8611A;color:#fff;padding:9px 12px;text-align:left;}
+.recap-tbl th:not(:first-child){text-align:center;}
+.recap-tbl td{padding:9px 12px;border-bottom:1px solid #f0f0f0;}
+.recap-tbl td:not(:first-child){text-align:center;}
+.recap-tbl tr:nth-child(even) td{background:#fdf2ec;}
+.recap-global{margin-top:14px;padding:12px 16px;background:var(--global-bg);border-radius:8px;font-size:13px;}
+@media(max-width:700px){
+  .ch{display:none;}
+  .qr{grid-template-columns:1fr;}
+  .pb{width:120px;}
+  .act{flex-direction:column;align-items:stretch;padding:8px 12px;gap:6px;}
+  .act-left{justify-content:center;}
+  .act-right{flex-wrap:wrap;justify-content:center;gap:6px;}
+  .act-right .btn,.act-right .btn-miss{font-size:11px;padding:7px 10px;flex:1;min-width:120px;text-align:center;}
+  .cnt{text-align:center;font-size:11px;}
+  .recap-card{padding:14px 10px;}
+  .recap-tbl{font-size:11px;display:block;overflow-x:auto;white-space:nowrap;}
+  .recap-tbl th,.recap-tbl td{padding:6px 8px;}
+  .recap-global{font-size:11px;padding:10px;}
+  .radar-wrap canvas{max-width:100%;height:auto;}
+  .cc{padding:20px 12px;margin:20px auto;}
+  .mb-box{padding:12px;}
+  main{padding:16px 8px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htxt">
+    <h1>EvalPro - AlterForm AID</h1>
+    <span>Outil d'évaluation</span>
+  </div>
+  <button id="darkBtn" class="btn" onclick="toggleDark()" style="margin-left:auto; background:transparent; border:1px solid #ccc;">🌙 Sombre</button>
+</header>
+
+<main>
+  <div id="v1" class="view active">
+     <div class="card">
+        <h2>Connexion</h2>
+        <div class="err" id="err"></div>
+        <div class="fg">
+           <label>Prénom du stagiaire</label>
+           <input type="text" id="ipr" placeholder="Ex: Jean">
+        </div>
+        <div class="fg">
+           <label>Nom du stagiaire</label>
+           <input type="text" id="ino" placeholder="Ex: Dupont">
+        </div>
+        <div class="fg">
+           <label>Formateur</label>
+           <select id="ifo">
+             <option value="">-- Sélectionnez --</option>
+             <option value="Ludovic Bylos" data-email="ludovic.bylos@isllg.be">Ludovic Bylos</option>
+             <option value="Autre Formateur" data-email="formateur@exemple.com">Autre Formateur</option>
+           </select>
+        </div>
+        <button id="btnS" class="btn bp" style="width:100%; margin-top:10px;">Commencer l'évaluation</button>
+     </div>
+  </div>
+
+  <div id="v2" class="view">
+     <div class="qh">
+        <div class="qi" id="is"></div>
+        <div style="display:flex; align-items:center; gap:15px;">
+           <div>
+              <div class="pl" id="pl1"></div>
+              <div class="pb"><div class="pf" id="pf1"></div></div>
+           </div>
+           <div id="sc1"></div>
+        </div>
+     </div>
+     <div id="ql1-spinner" class="spinner-wrap" style="display:none;"><div class="spinner"></div></div>
+     <div id="ql1" class="qcontent mb80"></div>
+     <div class="act">
+        <div class="act-left">
+           <button id="btnMissing" class="btn-miss">Questions sans réponse</button>
+           <div id="missing-panel" class="missing-panel"><div id="missing-list"></div></div>
+        </div>
+        <div class="act-right">
+           <span id="act-count" class="cnt"></span>
+           <button id="btnSub" class="btn bs">Terminer l'auto-évaluation</button>
+        </div>
+     </div>
+  </div>
+
+  <div id="v3" class="view">
+     <div class="cc fade-in">
+        <div class="ic">✅</div>
+        <h2>Auto-évaluation terminée</h2>
+        <p>Vos réponses ont été enregistrées localement.</p>
+        <div class="mb-box">
+          <p>Envoyez maintenant votre résultat au formateur pour qu'il puisse compléter sa partie.</p>
+          <a id="mla" href="#" class="btn bp">Générer l'e-mail pour le formateur</a>
+        </div>
+     </div>
+  </div>
+
+  <div id="v4" class="view">
+     <div class="qh">
+        <div class="qi" id="iff"></div>
+        <div style="display:flex; align-items:center; gap:15px;">
+           <div>
+              <div class="pl" id="pl2"></div>
+              <div class="pb"><div class="pf" id="pf2"></div></div>
+           </div>
+           <div id="sc2"></div>
+        </div>
+     </div>
+     <div class="radar-wrap">
+        <h3>Graphique de concordance</h3>
+        <canvas id="radarChart"></canvas>
+        <div class="radar-legend">
+          <span><div class="dot" style="background:#E8611A;"></div> Stagiaire</span>
+          <span><div class="dot" style="background:#3A9B3C;"></div> Formateur</span>
+        </div>
+     </div>
+     <div id="ql2" class="qcontent mb80"></div>
+     <div class="act">
+        <div class="act-left">
+           <button id="btnMissingF" class="btn-miss">Questions sans réponse</button>
+           <div id="missing-panel-f" class="missing-panel"><div id="missing-list-f"></div></div>
+        </div>
+        <div class="act-right">
+           <button id="btnRecap" class="btn bp">Voir le Récapitulatif</button>
+           <button id="btnEx" class="btn bs">Exporter Excel & Radar</button>
+        </div>
+     </div>
+  </div>
+
+  <div id="v5" class="view">
+     <div class="recap-card">
+        <h2>Récapitulatif des sections</h2>
+        <div id="recap-info" style="font-size:13px; color:#555; margin-bottom:10px;"></div>
+        <div id="recap-global" class="recap-global" style="margin-bottom:15px;"></div>
+        <table class="recap-tbl">
+          <thead>
+            <tr>
+              <th>Section</th>
+              <th>Moy. Stagiaire</th>
+              <th>Moy. Formateur</th>
+              <th>Concordance</th>
+            </tr>
+          </thead>
+          <tbody id="recap-body"></tbody>
+        </table>
+     </div>
+     <div class="act" style="justify-content:flex-end;">
+        <button id="btnBackToQ" class="btn-miss" style="margin-right:10px;">Retour aux questions</button>
+        <button id="btnExRecap" class="btn bs">Exporter Excel & Radar</button>
+     </div>
+  </div>
+</main>
+
+<script>
+// La variable contenant les choix de réponses (à modifier si besoin)
+var C = ["Non observé", "En cours", "Acquis", "Maîtrisé"];
+
+// Votre liste de questions
+var Q = [
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.1 COMPETENCE PROFESSIONNELLE: Traiter les documents relatifs à la réception",q:"1.1.1 Identifier les documents"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.1 COMPETENCE PROFESSIONNELLE: Traiter les documents relatifs à la réception",q:"1.1.2 Contrôler les documents (valides, complets)"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.1 COMPETENCE PROFESSIONNELLE: Traiter les documents relatifs à la réception",q:"1.1.3 Compléter les documents après vérification des articles"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.1 COMPETENCE PROFESSIONNELLE: Traiter les documents relatifs à la réception",q:"1.1.4 Trier les documents utiles"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.1 COMPETENCE PROFESSIONNELLE: Traiter les documents relatifs à la réception",q:"1.1.5 Transmettre les documents"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.1 COMPETENCE PROFESSIONNELLE: Traiter les documents relatifs à la réception",q:"1.1.6 Transcrire les informations dans le système d'information de l'entreprise"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.2 COMPETENCE PROFESSIONNELLE : Exécuter les contrôles de la livraison",q:"1.2.1 Effectuer un contrôle visuel de l'état des articles et de l'emballage avant le déchargement"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.2 COMPETENCE PROFESSIONNELLE : Exécuter les contrôles de la livraison",q:"1.2.2 Effectuer un contrôle qualitatif"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.2 COMPETENCE PROFESSIONNELLE : Exécuter les contrôles de la livraison",q:"1.2.3 Effectuer un contrôle quantitatif"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.2 COMPETENCE PROFESSIONNELLE : Exécuter les contrôles de la livraison",q:"1.2.4 Relever les anomalies qualitatives et/ou quantitatives (de livraison et/ou de conditionnement)"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.2 COMPETENCE PROFESSIONNELLE : Exécuter les contrôles de la livraison",q:"1.2.5 Retranscrire les anomalies sur les documents et dans le système d'information de l'entreprise"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.2 COMPETENCE PROFESSIONNELLE : Exécuter les contrôles de la livraison",q:"1.2.6 Valider les opérations de contrôle (signature, encodage)"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.3 Utiliser le matériel de manutention approprié",q:"1.3.1 Choisir le matériel de manutention adapté à la charge et à la nature des articles (bras, diable, roll, table élévatrice, girafe à roulettes, transpalette...)"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.3 Utiliser le matériel de manutention approprié",q:"1.3.2 Utiliser le matériel de manutention en respectant les règles d'ergonomie et de sécurité"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.4 COMPETENCE PROFESSIONNELLE : Traiter les documents relatifs à la réception",q:"1.4.1 Assurer l'intégrité des articles (conditions climatiques, chaîne du froid)"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.4 COMPETENCE PROFESSIONNELLE : Traiter les documents relatifs à la réception",q:"1.4.2 Manipuler adéquatement les articles"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.4 COMPETENCE PROFESSIONNELLE : Traiter les documents relatifs à la réception",q:"1.4.3 Eclater les articles si nécessaire"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.4 COMPETENCE PROFESSIONNELLE : Traiter les documents relatifs à la réception",q:"1.4.4 Assurer la traçabilité des articles"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.4 COMPETENCE PROFESSIONNELLE : Traiter les documents relatifs à la réception",q:"1.4.5 Déposer les articles à l'endroit prévu"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.4 COMPETENCE PROFESSIONNELLE : Traiter les documents relatifs à la réception",q:"1.4.6 Respecter les règles d'ergonomie et de sécurité"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.5 COMPETENCE PROFESSIONNELLE: Transférer les articles vers l'endroit prévu par l'organisation de l'entrepôt",q:"1.5.1 Suivre les pratiques, les consignes, les procédures de travail de l'entreprise/les plans des locaux/les localisations d'entreposage"},
+  {s:"Section 1: Activité clé 1: La réception des articles livrés (avec ou sans l'utilisation de matériel de manutention)",ss:"1.5 COMPETENCE PROFESSIONNELLE: Transférer les articles vers l'endroit prévu par l'organisation de l'entrepôt",q:"1.5.2 Déposer les articles à l'endroit prévu"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.1 COMPETENCE PROFESSIONNELLE: Identifier les besoins et contraintes en fonction des arrivages/des livraisons/des plannings de productions",q:"2.1.1 Consulter le planning des arrivages/des livraisons et des productions"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.1 COMPETENCE PROFESSIONNELLE: Identifier les besoins et contraintes en fonction des arrivages/des livraisons/des plannings de productions",q:"2.1.2 Collecter les données nécessaires"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.2. COMPETENCE PROFESSIONNELLE: Appliquer l'organisation de l'entrepôt",q:"2.2.1 Respecter les procédures et les méthodes de stockage (FIFO LIFO) prévues par l'entreprise"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.2. COMPETENCE PROFESSIONNELLE: Appliquer l'organisation de l'entrepôt",q:"2.2.2 Mettre en œuvre l'organisation de l'espace de stockage en fonction des taux de rotation"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.2. COMPETENCE PROFESSIONNELLE: Appliquer l'organisation de l'entrepôt",q:"2.2.3 Utiliser les outils de gestion (documents, logiciels)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.2. COMPETENCE PROFESSIONNELLE: Appliquer l'organisation de l'entrepôt",q:"2.2.4 Transcrire les informations dans le système d'information de l'entreprise"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.3 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à la mise en stock",q:"2.3.1 Collecter les informations pertinentes (documents, étiquetage, écran, scanning)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.3 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à la mise en stock",q:"2.3.2 Marquer les articles (traçabilité)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.3 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à la mise en stock",q:"2.3.3 Valider les informations (signature ou encodage)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.4 COMPETENCE PROFESSIONNELLE: Appliquer l'organisation de l'entrepôt",q:"2.4.1 Suivre les procédures de travail de l'entreprise/les plans des locaux/les localisations d'entreposage"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.4 COMPETENCE PROFESSIONNELLE: Appliquer l'organisation de l'entrepôt",q:"2.4.2 Ranger les articles dans les zones, les emplacements et conditions appropriés"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.5 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à l'inventaire",q:"2.5.1 Collecter les informations pertinentes (documents, étiquetage, écran, scanning)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.5 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à l'inventaire",q:"2.5.2 Comparer les informations"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.5 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à l'inventaire",q:"2.5.3 Identifier les anomalies"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.5 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à l'inventaire",q:"2.5.4 Informer la personne concernée (supérieur, comptable, collègues)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.5 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives à l'inventaire",q:"2.5.5 Transcrire les informations selon les procédures prévues par l'entreprise dans le système d'information de l'entreprise (état du stock)"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.6 COMPETENCE PROFESSIONNELLE: Contrôler l'état du stock (quantitatif/qualitatif)",q:"2.6.1 Compter les articles"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.6 COMPETENCE PROFESSIONNELLE: Contrôler l'état du stock (quantitatif/qualitatif)",q:"2.6.2 Vérifier l'adéquation entre le stock physique et le stock théorique"},
+  {s:"ACTIVITÉ CLÉ 2: LA PRÉPARATION ET LA GESTION DE L'ESPACE DE STOCKAGE (STOCKAGE, DÉSTOCKAGE, INVENTAIRE)",ss:"2.6 COMPETENCE PROFESSIONNELLE: Contrôler l'état du stock (quantitatif/qualitatif)",q:"2.6.3 Transcrire les informations selon les procédures prévues par l'entreprise dans le système d'information de l'entreprise (état du stock, correction)"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.1 COMPETENCE PROFESSIONNELLE: Organiser les préparations",q:"3.1.1 Réceptionner les bons de commande"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.1 COMPETENCE PROFESSIONNELLE: Organiser les préparations",q:"3.1.2 Trier les bons en fonction du planning de livraisons"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.1 COMPETENCE PROFESSIONNELLE: Organiser les préparations",q:"3.1.3 Suivre les procédures de travail de l'entreprise/les plans des locaux/les localisations d'entreposage"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.1 COMPETENCE PROFESSIONNELLE: Organiser les préparations",q:"3.1.4 Utiliser les outils de gestion (documents, logiciels)"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.2 COMPETENCE PROFESSIONNELLE : Prélever les articles dans le stock",q:"3.2.1 Utiliser les outils de gestion (documents, logiciels)"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.2 COMPETENCE PROFESSIONNELLE : Prélever les articles dans le stock",q:"3.2.2 Organiser le parcours de prélèvement des articles (déplacements, charge) sur base du plan de circulation"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.2 COMPETENCE PROFESSIONNELLE : Prélever les articles dans le stock",q:"3.2.3 Utiliser le matériel de déplacement adéquat"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.2 COMPETENCE PROFESSIONNELLE : Prélever les articles dans le stock",q:"3.2.4 Prendre les articles dans le stock"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.2 COMPETENCE PROFESSIONNELLE : Prélever les articles dans le stock",q:"3.2.5 Suivre les procédures de travail de l'entreprise/les plans des locaux/les localisations d'entreposage"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.2 COMPETENCE PROFESSIONNELLE : Prélever les articles dans le stock",q:"3.2.6 Utiliser les outils de gestion (documents, logiciels)"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.3 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives au picking",q:"3.3.1 Collecter les informations pertinentes (documents, étiquetage, écran, scanning)"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.3 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives au picking",q:"3.3.2 Transcrire les informations dans le système d'information de l'entreprise"},
+  {s:"ACTIVITÉ CLÉ 3: LE PRELEVEMENT LA COLLECTE ET LA PREPARATION DES ARTICLES POUR L'EXPEDITION (PIKING)",ss:"3.3 COMPETENCE PROFESSIONNELLE: Traiter les informations relatives au picking",q:"3.3.3 Valider les informations (signature ou encodage)"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.1 COMPETENCE PROFESSIONNELLE : Conditionner les articles",q:"4.1.1 Manipuler adéquatement les articles"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.1 COMPETENCE PROFESSIONNELLE : Conditionner les articles",q:"4.1.2 Rassembler les articles si nécessaire"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.1 COMPETENCE PROFESSIONNELLE : Conditionner les articles",q:"4.1.3 Respecter les règles d'ergonomie et sécurité"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.1 COMPETENCE PROFESSIONNELLE : Conditionner les articles",q:"4.1.4 Sélectionner le conditionnement adéquat"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.1 COMPETENCE PROFESSIONNELLE : Conditionner les articles",q:"4.1.5 Ranger de manière adaptée les articles dans le conditionnement sélectionné"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.1 COMPETENCE PROFESSIONNELLE : Conditionner les articles",q:"4.1.6 Contrôler avec minutie le conditionnement"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.2 COMPETENCE PROFESSIONNELLE : Préparer les expéditions",q:"4.2.1 Rassembler les conditionnements en unité de charge"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.2 COMPETENCE PROFESSIONNELLE : Préparer les expéditions",q:"4.2.2 Suivre les procédures de travail de l'entreprise"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.2 COMPETENCE PROFESSIONNELLE : Préparer les expéditions",q:"4.2.3 Entreposer adéquatement les conditionnements"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.2 COMPETENCE PROFESSIONNELLE : Préparer les expéditions",q:"4.2.4 Etiqueter/marquer les cartons/ les palettes (traçabilité)"},
+  {s:"ACTIVITÉ CLÉ 4: LA PRÉPARATION ET L'ENVOI DES EXPÉDITIONS",ss:"4.2 COMPETENCE PROFESSIONNELLE : Préparer les expéditions",q:"4.2.5 Transcrire les données dans le système d'information de l'entreprise"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.1 COMPETENCE PROFESSIONNELLE: Sélectionner le chariot élévateur",q:"5.1.1 Prendre connaissance de son planning de travail"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.1 COMPETENCE PROFESSIONNELLE: Sélectionner le chariot élévateur",q:"5.1.2 Choisir le chariot adéquat"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.2 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque prise de poste",q:"5.2.1 Contrôler visuellement le chariot"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.2 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque prise de poste",q:"5.2.2 Contrôler les différents niveaux (huiles, eau, batterie, pneus, carburant, gaz)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.2 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque prise de poste",q:"5.2.3 Réaliser un essai de mise en route (fonctionnement des organes de sécurité et des commandes)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.2 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque prise de poste",q:"5.2.4 Compléter la fiche de contrôle"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.2 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque prise de poste",q:"5.2.5 Signaler les éventuelles défectuosités et les anomalies"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.3 COMPETENCE PROFESSIONNELLE : Assurer la maintenance de premier niveau",q:"5.3.1 Ajuster les niveaux (eau, huile, batterie, carburant)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.3 COMPETENCE PROFESSIONNELLE : Assurer la maintenance de premier niveau",q:"5.3.2 Ajuster les câbles et les flexibles"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.3 COMPETENCE PROFESSIONNELLE : Assurer la maintenance de premier niveau",q:"5.3.4 Effectuer un contrôle quantitatif"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.4 COMPETENCE PROFESSIONNELLE : Adopter une conduite sécuritaire",q:"5.4.1 Respecter les conditions d'utilisation du chariot (diagramme de charge)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.4 COMPETENCE PROFESSIONNELLE : Adopter une conduite sécuritaire",q:"5.4.2 Choisir le sens de la marche du véhicule"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.4 COMPETENCE PROFESSIONNELLE : Adopter une conduite sécuritaire",q:"5.4.3 Circuler sans heurt (infrastructures, personnes)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.4 COMPETENCE PROFESSIONNELLE : Adopter une conduite sécuritaire",q:"5.4.4 Assurer les déplacements en toute sécurité"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.4 COMPETENCE PROFESSIONNELLE : Adopter une conduite sécuritaire",q:"5.4.5 Adapter la vitesse du chariot aux conditions d'utilisation"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.4 COMPETENCE PROFESSIONNELLE : Adopter une conduite sécuritaire",q:"5.4.6 Respecter le plan de circulation"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.5 COMPETENCE PROFESSIONNELLE : Placer les articles",q:"5.5.1 S'assurer de la conformité des charges"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.5 COMPETENCE PROFESSIONNELLE : Placer les articles",q:"5.5.2 Positionner le chariot devant les rayonnages"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.5 COMPETENCE PROFESSIONNELLE : Placer les articles",q:"5.5.3 Déposer la charge de manière équilibrée"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.6 COMPETENCE PROFESSIONNELLE : Enlever les articles",q:"5.6.1 S'assurer de la conformité des charges"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.6 COMPETENCE PROFESSIONNELLE : Enlever les articles",q:"5.6.2 Respecter les prescriptions prévues au diagramme de charge"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.6 COMPETENCE PROFESSIONNELLE : Enlever les articles",q:"5.6.3 Positionner le chariot devant les rayonnages"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.6 COMPETENCE PROFESSIONNELLE : Enlever les articles",q:"5.6.4 Déplacer la charge de manière"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.7 COMPETENCE PROFESSIONNELLE: Charger et décharger une unité de transport",q:"5.7.1 Assurer les contrôles de l'unité de transport avant le chargement (par ex. : pieds, attaches, dimensions, poids, cales)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.7 COMPETENCE PROFESSIONNELLE: Charger et décharger une unité de transport",q:"5.7.2 Communiquer les situations dangereuses"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.7 COMPETENCE PROFESSIONNELLE: Charger et décharger une unité de transport",q:"5.7.3 Respecter le plan de chargement dans la remorque"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.7 COMPETENCE PROFESSIONNELLE: Charger et décharger une unité de transport",q:"5.7.4 Circuler dans l'unité de transport"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.7 COMPETENCE PROFESSIONNELLE: Charger et décharger une unité de transport",q:"5.7.5 Enlever les articles adéquats"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.7 COMPETENCE PROFESSIONNELLE: Charger et décharger une unité de transport",q:"5.7.6 Arrimer les articles"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.8 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque fin de poste",q:"5.8.1 Ranger le chariot au parking de manière sécuritaire"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.8 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque fin de poste",q:"5.8.2 Contrôler visuellement le chariot"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.8 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque fin de poste",q:"5.8.3 Contrôler les différents niveaux (huiles, eau, batterie, pneus, carburant, gaz)"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.8 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque fin de poste",q:"5.8.4 Compléter la fiche de contrôle"},
+  {s:"ACTIVITÉ CLÉ 5: LA CONDUITE D'UN CHARIOT ÉLÉVATEUR (FRONTAL ET MAT RÉTRACTABLE)",ss:"5.8 COMPETENCE PROFESSIONNELLE: Réaliser les différents contrôles à chaque fin de poste",q:"5.8.5 Signaler les éventuelles défectuosités et les anomalies"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.1 COMPETENCE PROFESSIONNELLE: Accueillir les interlocuteurs extérieurs à l'entreprise",q:"6.1.1 Recevoir poliment et prendre congé des interlocuteurs extérieurs"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.1 COMPETENCE PROFESSIONNELLE: Accueillir les interlocuteurs extérieurs à l'entreprise",q:"6.1.2 Veiller à sa façon d'être (apparence, sourire, tact)"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.1 COMPETENCE PROFESSIONNELLE: Accueillir les interlocuteurs extérieurs à l'entreprise",q:"6.1.3 Appliquer les règles de politesse, de courtoisie"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.1 COMPETENCE PROFESSIONNELLE: Accueillir les interlocuteurs extérieurs à l'entreprise",q:"6.1.4 S'informer des attentes des interlocuteurs extérieurs"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.2 COMPETENCE PROFESSIONNELLE: Détecter les attentes des interlocuteurs extérieurs à l'entreprise",q:"6.2.1 Poser les questions utiles"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.2 COMPETENCE PROFESSIONNELLE: Détecter les attentes des interlocuteurs extérieurs à l'entreprise",q:"6.2.2 S'assurer de la bonne compréhension des informations"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.2 COMPETENCE PROFESSIONNELLE: Détecter les attentes des interlocuteurs extérieurs à l'entreprise",q:"6.2.3 Informer les interlocuteurs extérieurs en utilisant le vocabulaire technique adéquat"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.3 COMPETENCE PROFESSIONNELLE : Entretenir un bon climat de travail avec les collègues",q:"6.3.1 S'assurer de l'intégration des nouveaux collègues"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.3 COMPETENCE PROFESSIONNELLE : Entretenir un bon climat de travail avec les collègues",q:"6.3.2 Etablir une bonne relation au sein de l'équipe"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.3 COMPETENCE PROFESSIONNELLE : Entretenir un bon climat de travail avec les collègues",q:"6.3.3 Entretenir une bonne relation au sein de l'équipe"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.4 COMPETENCE PROFESSIONNELLE: Développer une communication appropriée",q:"6.4.1 Communiquer des messages clairs et précis"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.4 COMPETENCE PROFESSIONNELLE: Développer une communication appropriée",q:"6.4.2 Utiliser le vocabulaire technique adéquat"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.4 COMPETENCE PROFESSIONNELLE: Développer une communication appropriée",q:"6.4.3 S'informer des attentes des interlocuteurs"},
+  {s:"ACTIVITÉ CLÉ 6: LA GESTION DES CONTACTS AVEC LES INTERLOCUTEURS (INTERNES ET TIERS EXTERNES)",ss:"6.4 COMPETENCE PROFESSIONNELLE: Développer une communication appropriée",q:"6.4.4 Gérer les plaintes dans le cadre des limites de son travail"},
+  {s:"ACTIVITÉ CLÉ 7: LA RÉALISATION D'UN STAGE DE FORMATION PROFESSIONNELLE",ss:"7.1 COMPETENCE PROFESSIONNELLE: Exercer sur le terrain les compétences acquises",q:"7.1.1 Se confronter au contexte professionnelle en situation réelle"},
+  {s:"ACTIVITÉ CLÉ 7: LA RÉALISATION D'UN STAGE DE FORMATION PROFESSIONNELLE",ss:"7.1 COMPETENCE PROFESSIONNELLE: Exercer sur le terrain les compétences acquises",q:"7.1.2 Adapter et faire évoluer ses représentations et attitudes en fonction des retours du secteur"},
+  {s:"ACTIVITÉ CLÉ 8: LA DÉMARCHE D'INSERTION SOCIOPROFESSIONNELLE",ss:"8.1 COMPETENCE PROFESSIONNELLE: Mobiliser ses ressources pour trouver un emploi",q:"8.1.1 Identifier ses acquis et les valoriser"},
+  {s:"ACTIVITÉ CLÉ 8: LA DÉMARCHE D'INSERTION SOCIOPROFESSIONNELLE",ss:"8.1 COMPETENCE PROFESSIONNELLE: Mobiliser ses ressources pour trouver un emploi",q:"8.1.2 Créer son CV et autres supports nécessaires pour la recherche d'emploi (traditionnel ou numérique)"},
+  {s:"ACTIVITÉ CLÉ 8: LA DÉMARCHE D'INSERTION SOCIOPROFESSIONNELLE",ss:"8.1 COMPETENCE PROFESSIONNELLE: Mobiliser ses ressources pour trouver un emploi",q:"8.1.3 Identifier des obstacles à l'isp individualisée et initier les démarches en conséquence"},
+  {s:"ACTIVITÉ CLÉ 8: LA DÉMARCHE D'INSERTION SOCIOPROFESSIONNELLE",ss:"8.1 COMPETENCE PROFESSIONNELLE: Mobiliser ses ressources pour trouver un emploi",q:"8.1.4 Mobiliser ses ressources pour établir les contacts et se créer un réseau"}
+];
+
+var T=Q.length;
+var st={pr:'',no:'',fo:'',em:'',sa:[],fa:[],startTime:0};
+
+function sv(id){var all=document.querySelectorAll('.view');for(var i=0;i<all.length;i++){all[i].classList.remove('active');all[i].style.display='none';}var el=document.getElementById(id);el.style.display='block';el.classList.add('active','fade-in');setTimeout(function(){el.classList.remove('fade-in');},400);}
+function updateBar(pfId,pct){var el=document.getElementById(pfId);el.style.width=pct+'%';el.style.background=pct<40?'#e05252':pct<75?'#E8611A':'#3A9B3C';}
+function upS(){var n=0;for(var i=0;i<T;i++)if(st.sa[i]!==null)n++;var reste=T-n;document.getElementById('pl1').textContent=n+' / '+T+' repondues';updateBar('pf1',Math.round(n/T*100));var sc=document.getElementById('sc1');sc.textContent=n+'/'+T+' ('+Math.round(n/T*100)+'%)';sc.className='score-badge'+(n===T?' good':n>T/2?' mid':' low');var ac=document.getElementById('act-count');if(ac)ac.textContent=reste>0?reste+' restante(s)':'✅ Tout complet !';}
+function upF(){var n=0,ok=0;for(var i=0;i<T;i++){if(st.fa[i]!==null){n++;if(st.sa[i]===st.fa[i])ok++;}}document.getElementById('pl2').textContent=n+' / '+T+' evaluees';updateBar('pf2',Math.round(n/T*100));var sc=document.getElementById('sc2');if(n>0){var pct=Math.round(ok/n*100);sc.textContent='Concordance : '+ok+'/'+n+' - '+pct+'%';sc.className='score-badge'+(pct>=70?' good':pct>=40?' mid':' low');}else{sc.textContent='';sc.className='score-badge';}}
+function drawRadar(){var canvas=document.getElementById('radarChart');if(!canvas)return;var avail=canvas.parentElement.offsetWidth>100?Math.min(canvas.parentElement.offsetWidth-40,500):500;canvas.width=avail;canvas.height=Math.round(avail*0.85);var ctx=canvas.getContext('2d');var W=canvas.width,H=canvas.height;ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);var cx=W/2,cy=H/2+10,r=Math.min(W,H)/2-60;var sections=[...new Set(Q.map(function(q){return q.s;}))];var n=sections.length;var maxV=3;function sectionAvg(arr,sec){var vals=[];Q.forEach(function(q,i){if(q.s===sec&&arr[i]!==null)vals.push(arr[i]);});return vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:0;}var sData=sections.map(function(s){return sectionAvg(st.sa,s);});var fData=sections.map(function(s){return sectionAvg(st.fa,s);});ctx.strokeStyle='#cccccc';ctx.lineWidth=1;for(var lv=1;lv<=maxV;lv++){ctx.beginPath();for(var j=0;j<n;j++){var ang=-Math.PI/2+(2*Math.PI/n)*j;var rv=r*(lv/maxV);if(j===0)ctx.moveTo(cx+rv*Math.cos(ang),cy+rv*Math.sin(ang));else ctx.lineTo(cx+rv*Math.cos(ang),cy+rv*Math.sin(ang));}ctx.closePath();ctx.stroke();}for(var j=0;j<n;j++){var ang=-Math.PI/2+(2*Math.PI/n)*j;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+r*Math.cos(ang),cy+r*Math.sin(ang));ctx.strokeStyle='#cccccc';ctx.stroke();}ctx.fillStyle='#444';ctx.font='11px Arial';ctx.textAlign='center';ctx.textBaseline='middle';for(var j=0;j<n;j++){var ang=-Math.PI/2+(2*Math.PI/n)*j;var lbl=sections[j].length>22?sections[j].substring(0,20)+'...':sections[j];ctx.fillText(lbl,cx+(r+34)*Math.cos(ang),cy+(r+34)*Math.sin(ang));}function drawPoly(data,color,alpha){ctx.beginPath();for(var j=0;j<n;j++){var ang=-Math.PI/2+(2*Math.PI/n)*j;var rv=r*(data[j]/maxV);if(j===0)ctx.moveTo(cx+rv*Math.cos(ang),cy+rv*Math.sin(ang));else ctx.lineTo(cx+rv*Math.cos(ang),cy+rv*Math.sin(ang));}ctx.closePath();ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fill();ctx.globalAlpha=1;}function drawDots(data,color){for(var j=0;j<n;j++){var ang=-Math.PI/2+(2*Math.PI/n)*j;var rv=r*(data[j]/maxV);ctx.beginPath();ctx.arc(cx+rv*Math.cos(ang),cy+rv*Math.sin(ang),5,0,2*Math.PI);ctx.fillStyle=color;ctx.fill();}}drawPoly(sData,'#E8611A',0.18);drawPoly(fData,'#3A9B3C',0.18);drawDots(sData,'#E8611A');drawDots(fData,'#3A9B3C');}
+function buildCol(idx,who,locked){var wrap=document.createElement('div');if(locked)wrap.className='rl';if(locked&&who==='f'){wrap.innerHTML="<div class='ln'>R&eacute;serv&eacute; au formateur</div>";return wrap;}var grp=document.createElement('div');grp.className='rg';var ans=(who==='s')?st.sa:st.fa;for(var ci=0;ci<C.length;ci++){(function(ci2){var lbl=document.createElement('label');lbl.className='ro';var inp=document.createElement('input');inp.type='radio';inp.name=who+idx;inp.value=ci2;if(locked)inp.disabled=true;if(ans[idx]===ci2)inp.checked=true;if(!locked){inp.addEventListener('change',function(){if(who==='s'){st.sa[idx]=ci2;try{localStorage.setItem('evalpro_sa',JSON.stringify(st.sa));localStorage.setItem('evalpro_meta',JSON.stringify({pr:st.pr,no:st.no,fo:st.fo,start:st.startTime}));}catch(e){}upS();document.getElementById('r'+idx).classList.add('answered-s');var nxt=null;for(var k=idx+1;k<T;k++){if(st.sa[k]===null){nxt=k;break;}}if(nxt!==null){var nr=document.getElementById('r'+nxt);if(nr)setTimeout(function(){nr.scrollIntoView({behavior:'smooth',block:'center'});},200);}}else{st.fa[idx]=ci2;upF();drawRadar();document.getElementById('r'+idx).classList.add('answered-f');var nxt=null;for(var k=idx+1;k<T;k++){if(st.fa[k]===null){nxt=k;break;}}if(nxt!==null){var nr=document.getElementById('r'+nxt);if(nr)setTimeout(function(){nr.scrollIntoView({behavior:'smooth',block:'center'});},200);}}});}var sp=document.createElement('span');sp.textContent=C[ci2];lbl.appendChild(inp);lbl.appendChild(sp);grp.appendChild(lbl);})(ci);}if(locked&&who==='s'){wrap.appendChild(grp);var ln=document.createElement('div');ln.className='ln';ln.textContent='Lecture seule';wrap.appendChild(ln);}else wrap.appendChild(grp);return wrap;}
+function buildQ(cid,mode){var spId=cid==='ql1'?'ql1-spinner':null;if(spId)document.getElementById(spId).style.display='block';setTimeout(function(){if(spId)document.getElementById(spId).style.display='none';var cont=document.getElementById(cid);cont.innerHTML='';var lS='',lSS='';var ch=document.createElement('div');ch.className='ch';ch.innerHTML='<div>Question</div><div>Stagiaire</div><div>Formateur</div>';cont.appendChild(ch);for(var i=0;i<T;i++){if(Q[i].s!==lS){var s=document.createElement('div');s.className='st';s.textContent=Q[i].s;cont.appendChild(s);lS=Q[i].s;}if(Q[i].ss!==lSS){var sb=document.createElement('div');sb.className='ss';sb.textContent=Q[i].ss;cont.appendChild(sb);lSS=Q[i].ss;}var row=document.createElement('div');row.className='qr';row.id='r'+i;if(mode==='stagiaire'&&st.sa[i]!==null)row.classList.add('answered-s');if(mode==='formateur'&&st.fa[i]!==null)row.classList.add('answered-f');var qt=document.createElement('div');qt.className='qt';qt.textContent=Q[i].q;row.appendChild(qt);row.appendChild(buildCol(i,'s',mode==='formateur'));row.appendChild(buildCol(i,'f',mode==='stagiaire'));cont.appendChild(row);}},400);}
+document.getElementById('btnS').addEventListener('click',function(){var pr=document.getElementById('ipr').value.trim();var no=document.getElementById('ino').value.trim();var sel=document.getElementById('ifo');var fo=sel.value;var em=sel.options[sel.selectedIndex].getAttribute('data-email')||'';var er=document.getElementById('err');if(!pr||!no||!fo){er.style.display='block';er.textContent='Veuillez remplir tous les champs.';return;}er.style.display='none';st.pr=pr;st.no=no;st.fo=fo;st.em=em;st.sa=[];st.fa=[];for(var i=0;i<T;i++){st.sa.push(null);st.fa.push(null);}var saved=null,savedMeta=null;try{saved=localStorage.getItem('evalpro_sa');savedMeta=localStorage.getItem('evalpro_meta');}catch(e){}if(saved&&savedMeta){var meta=JSON.parse(savedMeta);if(meta.pr===pr&&meta.no===no&&meta.fo===fo){if(confirm('Des reponses sauvegardees ont ete trouvees pour '+pr+' '+no+'.\nOK = Reprendre | Annuler = Recommencer')){st.sa=JSON.parse(saved);st.startTime=meta.start||Date.now();document.getElementById('is').innerHTML='Stagiaire : <strong>'+pr+' '+no+'</strong> | Formateur : <strong>'+fo+'</strong>';buildQ('ql1','stagiaire');upS();sv('v2');window.scrollTo(0,0);return;}}}try{localStorage.removeItem('evalpro_sa');localStorage.removeItem('evalpro_meta');}catch(e){}st.startTime=Date.now();document.getElementById('is').innerHTML='Stagiaire : <strong>'+pr+' '+no+'</strong> | Formateur : <strong>'+fo+'</strong>';buildQ('ql1','stagiaire');upS();sv('v2');window.scrollTo(0,0);});
+document.getElementById('btnMissing').addEventListener('click',function(){var panel=document.getElementById('missing-panel');var list=document.getElementById('missing-list');var missing=[];for(var i=0;i<T;i++){if(st.sa[i]===null)missing.push(i);}if(missing.length===0){list.innerHTML="<div style='color:#1a6b1c;font-weight:700;padding:6px;'>&#x2705; Toutes les questions ont une r&eacute;ponse !</div>";panel.style.display='block';setTimeout(function(){panel.style.display='none';},2500);return;}list.innerHTML='';missing.forEach(function(idx){var div=document.createElement('div');div.className='missing-item';div.innerHTML="<span class='mnum'>Q"+(idx+1)+"</span><span>"+Q[idx].q.substring(0,80)+(Q[idx].q.length>80?'...':'')+"</span>";div.addEventListener('click',function(){panel.style.display='none';var row=document.getElementById('r'+idx);if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.style.outline='3px solid #E8611A';setTimeout(function(){row.style.outline='';},2000);}});list.appendChild(div);});panel.style.display=panel.style.display==='block'?'none':'block';});
+document.getElementById('btnMissingF').addEventListener('click',function(){var panel=document.getElementById('missing-panel-f');var list=document.getElementById('missing-list-f');var missing=[];for(var i=0;i<T;i++){if(st.fa[i]===null)missing.push(i);}if(missing.length===0){list.innerHTML="<div style='color:#1a6b1c;font-weight:700;padding:6px;'>&#x2705; Toutes les questions formateur ont une r&eacute;ponse !</div>";panel.style.display='block';setTimeout(function(){panel.style.display='none';},2500);return;}list.innerHTML='';missing.forEach(function(idx){var div=document.createElement('div');div.className='missing-item';div.innerHTML="<span class='mnum'>Q"+(idx+1)+"</span><span>"+Q[idx].q.substring(0,80)+(Q[idx].q.length>80?'...':'')+"</span>";div.addEventListener('click',function(){panel.style.display='none';var row=document.getElementById('r'+idx);if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.style.outline='3px solid #E8611A';setTimeout(function(){row.style.outline='';},2000);}});list.appendChild(div);});panel.style.display=panel.style.display==='block'?'none':'block';});
+document.getElementById('btnSub').addEventListener('click',function(){var u=0;for(var i=0;i<T;i++)if(st.sa[i]===null)u++;if(u>0&&!confirm('Il reste '+u+' question(s) sans reponse. Soumettre quand meme ?'))return;var elapsed=Math.round((Date.now()-st.startTime)/1000);var dateStr=new Date().toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'numeric'});var heureStr=new Date().toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});var p='prenom='+encodeURIComponent(st.pr)+'&nom='+encodeURIComponent(st.no)+'&formateur='+encodeURIComponent(st.fo);var a='';for(var i=0;i<T;i++)a+=(i>0?',':'')+(st.sa[i]===null?'x':st.sa[i]);p+='&answers='+encodeURIComponent(a)+'&temps='+elapsed+'&date='+encodeURIComponent(dateStr)+'&heure='+encodeURIComponent(heureStr)+'&mode=formateur';var lien=window.location.href.split('?')[0].split('#')[0]+'?'+p;var suj=encodeURIComponent('Evaluation de '+st.pr+' '+st.no+' - A completer');var bod=encodeURIComponent('Bonjour '+st.fo+',\n\nLe stagiaire '+st.pr+' '+st.no+' a complete son auto-evaluation.\n\nCliquez sur le lien ci-dessous :\n\n'+lien+'\n\nMerci !');document.getElementById('mla').href='mailto:'+st.em+'?subject='+suj+'&body='+bod;try{localStorage.removeItem('evalpro_sa');localStorage.removeItem('evalpro_meta');}catch(e){}sv('v3');window.scrollTo(0,0);});
+document.getElementById('btnEx').addEventListener('click',function(){var btn=this;btn.disabled=true;var count=3;btn.textContent='Telechargement... '+count;var iv=setInterval(function(){count--;if(count>0){btn.textContent='Telechargement... '+count;}else{clearInterval(iv);btn.disabled=false;btn.textContent='Exporter en Excel';}},1000);var base='Evaluation_'+st.no+'_'+st.pr;var rows=[['Section','Sous-section','Question','Reponse Stagiaire','Reponse Formateur','Concordance']];for(var i=0;i<T;i++){var sa=st.sa[i],fa=st.fa[i];var co=(sa!==null&&fa!==null)?(sa===fa?'Oui':'Non'):'-';rows.push([Q[i].s,Q[i].ss,Q[i].q,sa!==null?C[sa]:'(sans reponse)',fa!==null?C[fa]:'(sans reponse)',co]);}var ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:40},{wch:50},{wch:60},{wch:30},{wch:30},{wch:14}];var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Evaluation');try{XLSX.writeFile(wb,base+'.xlsx');}catch(e){alert('Erreur Excel: '+e);}setTimeout(function(){var cv=document.getElementById('radarChart');if(cv&&cv.width>10){var a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=base+'_Radar.png';document.body.appendChild(a);a.click();document.body.removeChild(a);}},600);var dest='ludovic.bylos@isllg.be';var suj=encodeURIComponent('Evaluation de '+st.pr+' '+st.no+' - Formateur : '+st.fo);var bod=encodeURIComponent('Bonjour,\n\nEvaluation de '+st.pr+' '+st.no+'\nFormateur : '+st.fo+'\n\n2 fichiers telecharges : '+base+'.xlsx et '+base+'_Radar.png\n\nMerci de les joindre.\n\nMerci !');setTimeout(function(){window.location.href='mailto:'+dest+'?subject='+suj+'&body='+bod;},3000);});
+function initF(){var p=new URLSearchParams(window.location.search);if(p.get('mode')!=='formateur'||!p.get('answers'))return false;st.pr=p.get('prenom')||'';st.no=p.get('nom')||'';st.fo=p.get('formateur')||'';var raw=(p.get('answers')||'').split(',');st.sa=[];st.fa=[];for(var i=0;i<T;i++){st.sa.push(raw[i]==='x'||!raw[i]?null:parseInt(raw[i]));st.fa.push(null);}var tsec=parseInt(p.get('temps')||'0');var tmin=Math.floor(tsec/60),trem=tsec%60;var tstr=tmin+'m '+trem+'s';var tcol=tsec>900?'#1a6b1c':tsec>300?'#856404':'#7b0000';var tbg=tsec>900?'#C8F0CA':tsec>300?'#fff3cd':'#FACCCC';var tico=tsec>900?'&#x1F7E2;':tsec>300?'&#x1F7E1;':'&#x1F534;';var dateAff=p.get('date')||'';var heureAff=p.get('heure')||'';var dateLabel=dateAff?"<span style='margin-left:10px;font-size:12px;color:#888;'>&#x1F4C5; "+dateAff+" &agrave; "+heureAff+"</span>":'';document.getElementById('iff').innerHTML='Stagiaire : <strong>'+st.pr+' '+st.no+'</strong> | Formateur : <strong>'+st.fo+"</strong><span style='margin-left:14px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:"+tbg+";color:"+tcol+"'>"+tico+' Temps : '+tstr+'</span>'+dateLabel;buildQ('ql2','formateur');upF();sv('v4');setTimeout(drawRadar,500);setTimeout(drawRadar,1200);return true;}
+function showRecap(){var sections=[...new Set(Q.map(function(q){return q.s;}))];var body=document.getElementById('recap-body');body.innerHTML='';var totalOk=0,totalN=0;sections.forEach(function(sec,idx){var sVals=[],fVals=[],ok=0,tot=0;Q.forEach(function(q,i){if(q.s===sec){if(st.sa[i]!==null)sVals.push(st.sa[i]);if(st.fa[i]!==null){fVals.push(st.fa[i]);tot++;if(st.sa[i]===st.fa[i])ok++;}}});var sAvg=sVals.length?(sVals.reduce(function(a,b){return a+b;},0)/sVals.length).toFixed(2):'--';var fAvg=fVals.length?(fVals.reduce(function(a,b){return a+b;},0)/fVals.length).toFixed(2):'--';var conc=tot>0?Math.round(ok/tot*100)+'%':'--';var concBg=tot>0?(ok/tot>=0.7?'#C8F0CA':ok/tot>=0.4?'#fff3cd':'#FACCCC'):'#f5f5f5';totalOk+=ok;totalN+=tot;var tr=document.createElement('tr');tr.innerHTML='<td style="font-weight:700;">'+sec+'</td><td>'+sAvg+'/3</td><td>'+fAvg+'/3</td><td style="background:'+concBg+';font-weight:700;">'+conc+'</td>';body.appendChild(tr);});var gPct=totalN>0?Math.round(totalOk/totalN*100):0;var gCol=gPct>=70?'#1a6b1c':gPct>=40?'#856404':'#7b0000';var gBg=gPct>=70?'#C8F0CA':gPct>=40?'#fff3cd':'#FACCCC';document.getElementById('recap-global').innerHTML='<strong>Concordance globale : <span style="color:'+gCol+';background:'+gBg+';padding:2px 10px;border-radius:99px;">'+gPct+'%</span></strong> &nbsp;|&nbsp; '+totalOk+' accords sur '+totalN+' questions &eacute;valu&eacute;es';document.getElementById('recap-info').innerHTML='Stagiaire : <strong>'+st.pr+' '+st.no+'</strong> &nbsp;|&nbsp; Formateur : <strong>'+st.fo+'</strong>';}
+document.getElementById('btnRecap').addEventListener('click',function(){showRecap();sv('v5');window.scrollTo(0,0);});
+document.getElementById('btnBackToQ').addEventListener('click',function(){sv('v4');window.scrollTo(0,0);});
+document.getElementById('btnExRecap').addEventListener('click',function(){document.getElementById('btnEx').click();});
+if(!initF())sv('v1');
+
+function toggleDark() {
+  var body = document.body;
+  var btn = document.getElementById('darkBtn');
+  if (body.classList.contains('dark')) {
+    body.classList.remove('dark');
+    btn.textContent = '🌙 Sombre';
+    try { localStorage.setItem('evalpro_dark', '0'); } catch(e) {}
+  } else {
+    body.classList.add('dark');
+    btn.textContent = '☀️ Clair';
+    try { localStorage.setItem('evalpro_dark', '1'); } catch(e) {}
+  }
+}
+// Restore dark mode preference
+(function() {
+  try {
+    if (localStorage.getItem('evalpro_dark') === '1') {
+      document.body.classList.add('dark');
+      var btn = document.getElementById('darkBtn');
+      if (btn) btn.textContent = '☀️ Clair';
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
